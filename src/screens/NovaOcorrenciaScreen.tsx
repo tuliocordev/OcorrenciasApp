@@ -51,7 +51,7 @@ function salvarOcorrencia() {
     descricao: descricao.trim(),
 
     local: local.trim(),
-
+    
   });
 
   mostrarToast(
