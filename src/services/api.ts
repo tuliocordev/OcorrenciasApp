@@ -20,7 +20,7 @@ export type CriarOcorrenciaPayload = {
 export async function listarOcorrenciaPorSlug(slug : string) {
     const resposta = await fetch(`${API_URL}/ocorrencias?slug=${slug}`);
 
-    if(resposta.ok){
+    if(!resposta.ok){
         throw new Error('Erro ao buscar ocorrencias');
     }
 
