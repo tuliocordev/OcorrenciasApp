@@ -1,17 +1,22 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useEffect, useState } from 'react';
 import Toast from 'react-native-toast-message';
 import HomeScreen from './src/screens/HomeScreen';
 import NovaOcorrenciaScreen from './src/screens/NovaOcorrenciaScreen';
 import ListaOcorrenciasScreen from './src/screens/ListaOcorrenciasScreen';
 import { colors, fontSize } from './src/styles/theme';
+import { listarOcorrenciaPorSlug, SLUG_ALUNO } from './src/services/api';
 
 export type Ocorrencia = {
   id: string;
   titulo: string;
   descricao: string;
   local: string;
+  slug?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type RootTabParamList = {
@@ -23,6 +28,21 @@ export type RootTabParamList = {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export default function App() {
+  const [ocorrencias, setOcorrencias] = useState<Ocorrencia[]>([]);
+
+  useEffect(() => {
+    carregarOcorrencias();
+  }, []);
+
+  async function carregarOcorrencias() {
+    try {
+      const dados = await listarOcorrenciaPorSlug(SLUG_ALUNO);
+      setOcorrencias(dados);
+    } catch (error) {
+      console.error('Erro ao carregar ocorrências:', error);
+    }
+  }
+
   return (
     <>
       <NavigationContainer>
@@ -65,9 +85,11 @@ export default function App() {
         >
           <Tab.Screen
             name="Home"
-            component={HomeScreen}
             options={{ title: 'Início' }}
-          />
+          >
+            {() => <HomeScreen ocorrencias={ocorrencias} />}
+          </Tab.Screen>
+
           <Tab.Screen
             name="NovaOcorrencia"
             options={{ title: 'Nova' }}
