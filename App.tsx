@@ -7,7 +7,12 @@ import HomeScreen from './src/screens/HomeScreen';
 import NovaOcorrenciaScreen from './src/screens/NovaOcorrenciaScreen';
 import ListaOcorrenciasScreen from './src/screens/ListaOcorrenciasScreen';
 import { colors, fontSize } from './src/styles/theme';
-import { listarOcorrenciaPorSlug, SLUG_ALUNO } from './src/services/api';
+import {
+  listarOcorrenciaPorSlug,
+  SLUG_ALUNO,
+  deletarOcorrencia,
+  atualizarOcorrencia,
+} from './src/services/api';
 
 export type Ocorrencia = {
   id: string;
@@ -17,6 +22,7 @@ export type Ocorrencia = {
   slug?: string;
   createdAt?: string;
   updatedAt?: string;
+  deletedAt?: string | null;
 };
 
 export type RootTabParamList = {
@@ -40,6 +46,35 @@ export default function App() {
       setOcorrencias(dados);
     } catch (error) {
       console.error('Erro ao carregar ocorrências:', error);
+    }
+  }
+
+  async function removerOcorrencia(id: string) {
+    try {
+      await deletarOcorrencia(id);
+      setOcorrencias((valorAtual) =>
+        valorAtual.filter((ocorrencia) => ocorrencia.id !== id)
+      );
+    } catch (error) {
+      console.log('Erro ao remover ocorrência:', error);
+      throw error;
+    }
+  }
+
+  async function editarOcorrencia(
+    id: string,
+    dadosAtualizados: Omit<Ocorrencia, 'id' | 'slug' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+  ) {
+    try {
+      const ocorrenciaAtualizada = await atualizarOcorrencia(id, dadosAtualizados);
+      setOcorrencias((valorAtual) =>
+        valorAtual.map((ocorrencia) =>
+          ocorrencia.id === id ? ocorrenciaAtualizada : ocorrencia
+        )
+      );
+    } catch (error) {
+      console.log('Erro ao editar ocorrência:', error);
+      throw error;
     }
   }
 
@@ -83,25 +118,23 @@ export default function App() {
             },
           })}
         >
-          <Tab.Screen
-            name="Home"
-            options={{ title: 'Início' }}
-          >
+          <Tab.Screen name="Home" options={{ title: 'Início' }}>
             {() => <HomeScreen ocorrencias={ocorrencias} />}
           </Tab.Screen>
 
-          <Tab.Screen
-            name="NovaOcorrencia"
-            options={{ title: 'Nova' }}
-          >
+          <Tab.Screen name="NovaOcorrencia" options={{ title: 'Nova' }}>
             {() => <NovaOcorrenciaScreen />}
           </Tab.Screen>
 
-          <Tab.Screen
-            name="ListaOcorrencias"
-            options={{ title: 'Lista' }}
-          >
-            {() => <ListaOcorrenciasScreen />}
+          <Tab.Screen name="ListaOcorrencias" options={{ title: 'Lista' }}>
+            {() => (
+              <ListaOcorrenciasScreen
+                ocorrencias={ocorrencias}
+                carregando={false}
+                removerOcorrencia={removerOcorrencia}
+                editarOcorrencia={editarOcorrencia}
+              />
+            )}
           </Tab.Screen>
         </Tab.Navigator>
       </NavigationContainer>

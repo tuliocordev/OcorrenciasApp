@@ -1,27 +1,25 @@
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import OccurrenceCard from '../components/OccurrenceCard';
 import { colors, fontSize, spacing } from '../styles/theme';
 import { Ocorrencia } from '../../App';
-import { listarOcorrenciaPorSlug, SLUG_ALUNO } from '../services/api';
 
-export default function ListaOcorrenciasScreen() {
-  const [ocorrencias, setOcorrencias] = useState<Ocorrencia[]>([]);
+type Props = {
+  ocorrencias: Ocorrencia[];
+  carregando: boolean;
+  removerOcorrencia: (id: string) => Promise<void>;
+  editarOcorrencia: (
+    id: string,
+    dadosAtualizados: Omit<Ocorrencia, 'id' | 'slug' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+  ) => Promise<void>;
+};
 
-  useEffect(() => {
-    async function buscarOcorrencias() {
-      try {
-        const dados = await listarOcorrenciaPorSlug(SLUG_ALUNO);
-        setOcorrencias(dados);
-      } catch (error) {
-        console.error('Erro ao buscar ocorrências:', error);
-      }
-    }
-
-    buscarOcorrencias();
-  }, []);
-
+export default function ListaOcorrenciasScreen({
+  ocorrencias,
+  carregando,
+  removerOcorrencia,
+  editarOcorrencia,
+}: Props) {
   return (
     <View style={styles.container}>
       <Header
@@ -41,9 +39,12 @@ export default function ListaOcorrenciasScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <OccurrenceCard
+              id={item.id}
               titulo={item.titulo}
               descricao={item.descricao}
               local={item.local}
+              onRemover={removerOcorrencia}
+              onEditar={editarOcorrencia}
             />
           )}
           showsVerticalScrollIndicator={false}
